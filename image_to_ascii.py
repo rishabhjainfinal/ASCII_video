@@ -51,8 +51,8 @@ class image_to_ascii(object):
 		if not os.path.exists(image) : raise FileNotFoundError("File not found!!.")
 		self.img = cv2.imread(image,0).transpose()
 		self.width,self.height = self.img.shape
-		
-	def crate_assci(self):
+	
+	def crate_ascii(self):
 		# resonsible for the creation of ascii art from image and return a 2d list as the result  
 		# average_pixle colour of each block 
 		self.ascii_in_pixles = []
@@ -76,6 +76,7 @@ class image_to_ascii(object):
 		for a in self.ascii_in_pixles : 
 			to_write = "".join(a)+'\n'
 			if self.for_command_line : 
+				# print("".join(a))
 				to_write = to_write.replace(".",' ')
 				to_write = to_write.replace(",",' ')
 			af.writelines(to_write)
@@ -86,9 +87,9 @@ class image_to_ascii(object):
 	def runner(cls,image,for_command_line,pbs = 10):
 		ascii_ = cls(for_command_line=for_command_line,pbs=pbs)
 		ascii_.image(image)
-		ascii_.crate_assci()
+		ascii_.crate_ascii()
 		ascii_.save_in_file()
 
 if __name__ == "__main__":
-	image_to_ascii.runner('ab.png',False)
+	image_to_ascii.runner('abcd.jpg',False,3)
 	# image_to_ascii.runner('Screenshot (228).png',False)

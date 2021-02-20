@@ -9,13 +9,14 @@ import cv2
 # 5. save the image in video in the same frame 
 # 6. (optional) extract and add sound to the videos 
 
-class ascii_video:
+class ascii_video(image_to_ascii) :
     """ working of class 
             extract image and yield  
             convert into ascii image 
             save in the video  
     """
     def __init__(self,video,fps):
+        super().__init__(pbs = 15)
         self.video_name = video
         self.video_output_name = "Ascii_video.mp4"
         self.fps = fps
@@ -38,35 +39,35 @@ class ascii_video:
             if count%steps == 0 :
                 try : 
                     self.current_frame = frame 
+                    if success : print(f"Working on frame -> '{str(count).zfill(5)}'",end=" - ")
                     yield True
                 except GeneratorExit : break  #"Need to do some clean up."
                 except : pass # last frame is none =.=
-                else:
-                    if success : print(f"Working on frame -> '{str(count).zfill(5)}'",end=" - ")
-
 
         vidcap.release() # print(vidcap.isOpened())
         yield False
 
-    def convert_to_ascii_image(self,current_frame):
+    def convert_to_ascii_image(self):
         # this will convert the black and white frame to ascii letter and creat a image from that letter
         print('converting to ASCII images' ,end = " - ")
         # need only b&w images
-        # cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        return current_frame
+        self.img = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2GRAY)
+        self.img = self.img.transpose()
+        self.width,self.height = self.img.shape
+        ascii_list = self.crate_ascii()
+        # creat image 
+        return self.current_frame
 
     def create_video(self):
         # size of the first frames in videos is default   
         # print(list(self.current_frame.shape)[0:2][::-1])
         writer = cv2.VideoWriter(self.video_output_name, cv2.VideoWriter_fourcc(*"mp4v"), self.fps,tuple(list(self.current_frame.shape)[0:2][::-1]) )
         while True :
-            try : 
-                ascii_frame = self.convert_to_ascii_image(self.current_frame)
-                writer.write(ascii_frame)
-                print('Saving image in video.')  
-                yield
+            ascii_frame = self.convert_to_ascii_image()
+            writer.write(ascii_frame)
+            print('Saving image in video.')  
+            try : yield
             except GeneratorExit : break  #"Need to do some clean up."
-            except : pass # last frame is none =.=
 
         print(f"Saving video as - {self.video_output_name}")
         writer.release()
@@ -74,7 +75,7 @@ class ascii_video:
 
     @classmethod
     def runner(cls):
-        class_runner = cls('a.mp4',30) # for testing only
+        class_runner = cls('a.mp4',3) # for testing only
         # readiing each image
         reader_gen = class_runner.read_video()
         # saving each convterted image in video with given fps
@@ -88,8 +89,11 @@ class ascii_video:
             else :
                 print("")
                 break
-            # break
-            # print(type(a.current_frame))
+        
+        # cv2.imshow("a",class_runner.img)
+        # cv2.waitKey(0)
+        # cv2.imshow("b",class_runner.current_frame)
+        # cv2.waitKey(0)
         
 def extract_image(video,fps):
     # 1. get videos frames 
