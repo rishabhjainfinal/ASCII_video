@@ -9,6 +9,7 @@ class image_to_ascii(object):
 		self.pbs = pbs # pixle_block_size
 		# all the ascii characters used are here in the order of the darkness
 		self.ascii_range_dictCHARS = [
+			'black_space',
 			'.',
 			',',
 			"'",
@@ -21,8 +22,12 @@ class image_to_ascii(object):
 			'+',
 			'=',
 			'?',
+			'/',
+			'|',
 			'#',
 			'%',
+			'₹',
+			'$',
 			'@'
 			]
 		# for the better visul of image use reverse 
@@ -67,12 +72,16 @@ class image_to_ascii(object):
 				except : pass # last some pixle less then pixle_count_in_block will be leaved because they may cause some irragularity in shades
 			# print()
 			self.ascii_in_pixles.append(temp_list)
+		for row in range(len(self.ascii_in_pixles)):
+			for ele in range(len(self.ascii_in_pixles[0])):
+				if self.ascii_in_pixles[row][ele] == 'black_space':
+					self.ascii_in_pixles[row][ele] = " "
 
 		return self.ascii_in_pixles
 
 	def save_in_file(self):
 		# this will wirte all ascii in the fiel and update if the file exist
-		af = open(self.ascii_art,'w')
+		af = open(self.ascii_art,mode= 'w',encoding='utf-8')
 		for a in self.ascii_in_pixles : 
 			to_write = "".join(a)+'\n'
 			if self.for_command_line : 
@@ -91,5 +100,5 @@ class image_to_ascii(object):
 		ascii_.save_in_file()
 
 if __name__ == "__main__":
-	image_to_ascii.runner('testing_data/abcd.jpg',False,10)
+	image_to_ascii.runner('testing_data/abc.jpg',False,10)
 	# image_to_ascii.runner('Screenshot (228).png',False)
