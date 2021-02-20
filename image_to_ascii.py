@@ -91,5 +91,5 @@ class image_to_ascii(object):
 		ascii_.save_in_file()
 
 if __name__ == "__main__":
-	image_to_ascii.runner('abcd.jpg',False,3)
+	image_to_ascii.runner('testing_data/abcd.jpg',False,10)
 	# image_to_ascii.runner('Screenshot (228).png',False)
