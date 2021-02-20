@@ -1,6 +1,5 @@
 from image_to_ascii import image_to_ascii
 import cv2
-from PIL import Image
 
 # steps for the working
 # 1. extract images 
@@ -8,8 +7,7 @@ from PIL import Image
 # 3. create a images of ascii 
 # 4. ascii  to image
 # 5. save the image in video in the same frame 
-# 6. (optional) add sound to the videos 
-
+# 6. (optional) extract and add sound to the videos 
 
 class ascii_video:
     """ working of class 
