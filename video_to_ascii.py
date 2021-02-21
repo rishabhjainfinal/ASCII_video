@@ -2,6 +2,7 @@ from image_to_ascii import image_to_ascii
 import cv2,os,numpy as np
 from threading import Thread
 from multiprocessing import Process
+from threading import Thread
 # may add sound later .
 
 class ascii_video :
@@ -114,7 +115,8 @@ class ascii_video :
         # updating the text in it 
         for index_r,row in enumerate(ascii_data) :
             for index_c,ascii_val in enumerate(row) :
-                image = cv2.putText(image,ascii_val,(index_c*self.pbs,(index_r+1)*self.pbs),cv2.FONT_HERSHEY_PLAIN,0.9,(255,255,255),1)
+                if ascii_val.strip() != "" :
+                    image = cv2.putText(image,ascii_val,(index_c*self.pbs,(index_r+1)*self.pbs),cv2.FONT_HERSHEY_PLAIN,0.9,(255,255,255),1)
         return image
     
     def add_ascii_frame(self,frame):
@@ -128,10 +130,13 @@ class ascii_video :
     @classmethod
     def testing(cls,video,output_video,fps,pbs):
         with cls(video,output_video,fps,pbs) as ascii_video :
-            ascii_video.iter_each_frame()
+            reader = Thread(target=ascii_video.iter_each_frame())
+            reader.start()
+            reader.join()
     
 if __name__ == "__main__":
-    ascii_video.testing('ab.mp4',"Ascii_video.mp4",1,10)
+    ascii_video.testing('a.mp4',"Ascii_video2.mp4",1,10)
 
-# updates needed :
+# updates needed : 
     # crate function to which thread submit his work and function save the result in order
+    # first create a list of the funtion 

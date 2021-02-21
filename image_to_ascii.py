@@ -62,7 +62,6 @@ class image_to_ascii(object):
 		self.ascii_in_pixles = np.full([self.height//self.pbs,self.width//self.pbs], "", dtype=np.object)
 
 		for index_h,h in enumerate(range(0,self.height,self.pbs)) :
-			temp_list = []
 			for index_w,w in enumerate(range(0,self.width,self.pbs)) :
 				try :
 					sum_ = sum(self.img[w:w + self.pbs,h:h+self.pbs].flatten())
