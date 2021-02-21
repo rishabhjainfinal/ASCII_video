@@ -3,6 +3,7 @@ import cv2,os,numpy as np
 import concurrent.futures
 from threading import Thread
 from time import perf_counter,sleep as nap
+import argparse
 
 # may add sound later .\
 class ascii_video :
@@ -136,8 +137,8 @@ class ascii_video :
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 new_frames = executor.map(self.frame_to_ascii_to_ascii_image , self.frame_list )
                 for new_frame in new_frames:
-                    Thread(target= lambda : self.frame_list.pop(0)).start()
                     self.writer.write(new_frame) # save the frame 
+                    self.frame_list.pop(0)
         
         print('Done. 😎')
 
@@ -157,9 +158,20 @@ class ascii_video :
             saver.join()
 
 # example  - args - inputVideo, outoutVideo,fps,pbs
-# ascii_video.runner('ab.mp4',"Ascii_video2.mp4",30,10)
+    # ascii_video.runner('ab.mp4',"Ascii_video2.mp4",30,10)
+    # ascii_video.runner('ab.mp4',"Ascii_video2.mp4",30,10)
 if __name__ == "__main__" : 
-    start = perf_counter()
-    ascii_video.runner('ab.mp4',"Ascii_video2.mp4",30,10)
-    finish = perf_counter()
-    print(f"Total time Taken {finish - start} ")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f','--file' ,help = "name of the file you wanna use with extention !")
+    parser.add_argument('-o','--outfile',default = "Ascii_video.mp4" ,help = "name of the output file !")
+    parser.add_argument('--fps' ,default = 20,type = int,help = "fps of the output videos ! (default = 20)")
+    parser.add_argument('--pbs' ,default = 15,type = int,help = "pixle block size | smaller the number much fine result and but slow processing (default = 15 )")
+    args = parser.parse_args()
+    print(args)
+    if args.file:
+        start = perf_counter()
+        ascii_video.runner(args.file,args.outfile,args.fps,args.pbs)
+        finish = perf_counter()
+        print(f"Total time Taken {finish - start}s")
+    else : 
+        raise Exception('file name is important for the program use -h for help')
