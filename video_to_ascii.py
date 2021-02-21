@@ -95,6 +95,7 @@ class ascii_video :
                     t1.start()
                     # make it save frames in thread  in frame list
         self.reader_completed = True
+        print("Just funishing up last -",len(self.frame_list),"process 😄😄")
 
     def image_to_ascii_convertor(self,image):
         # read the image in the b&w format transpose it and return the ascii nested list for that 
