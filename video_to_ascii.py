@@ -156,9 +156,10 @@ class ascii_video :
             print('waiting for the results...')
             saver.join()
 
+# example  - args - inputVideo, outoutVideo,fps,pbs
+# ascii_video.runner('ab.mp4',"Ascii_video2.mp4",30,10)
 if __name__ == "__main__" : 
     start = perf_counter()
     ascii_video.runner('ab.mp4',"Ascii_video2.mp4",30,10)
     finish = perf_counter()
-
     print(f"Total time Taken {finish - start} ")
