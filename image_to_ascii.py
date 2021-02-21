@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
-import os
-
+import os,argparse
+from time import perf_counter
 # when saving in the fiel replace . from space
 class image_to_ascii(object):
 	def __init__(self,for_command_line = False,pbs=10):
@@ -90,6 +90,19 @@ class image_to_ascii(object):
 		ascii_.crate_ascii()
 		ascii_.save_in_file()
 
-if __name__ == "__main__":
-	image_to_ascii.runner('testing_data/abc.jpg',False,10)
+# example
+	# image_to_ascii.runner('testing_data/abc.jpg',False,10)
 	# image_to_ascii.runner('Screenshot (228).png',False)
+if __name__ == "__main__":
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-f','--file' ,help = "name of the file you wanna use with extention !")
+	parser.add_argument('-c',"--commandLine",action="store_true",help = "this art will use in command line display")
+	parser.add_argument('--pbs' ,default = 15,type = int,help = "pixle block size | smaller the number much fine result and but slow processing (default = 15 )")
+	args = parser.parse_args()
+	if args.file :
+		start = perf_counter()
+		image_to_ascii.runner(args.file,args.commandLine,args.pbs)
+		finish = perf_counter()
+		print(f"Total time Taken {finish - start}s")
+	else : 
+		raise Exception('file name is important for the program use -h for help')
