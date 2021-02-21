@@ -6,7 +6,6 @@ from time import perf_counter,sleep as nap
 from numba import jit, cuda 
 # may add sound later .
 
-@jit
 class ascii_video :
     """ working of class 
             extract image and yield  
