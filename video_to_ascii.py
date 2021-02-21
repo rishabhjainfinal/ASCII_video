@@ -135,7 +135,7 @@ class ascii_video :
             reader.join()
     
 if __name__ == "__main__":
-    ascii_video.testing('a.mp4',"Ascii_video2.mp4",30,10)
+    ascii_video.testing('ab.mp4',"Ascii_video2.mp4",30,10)
 
 # updates needed : 
     # crate function to which thread submit his work and function save the result in order
