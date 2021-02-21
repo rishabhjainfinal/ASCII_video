@@ -29,9 +29,7 @@ create ascii videos 😎😎😎😎😎.
 <img src="https://github.com/rishabhjainfinal/ASCII_video/blob/main/example.PNG" />
 
 ### Fro video results check 
-Ascii_video.mp4 in this repo
-
-
+`Ascii_video`.mp4 in this repo made from `testing_data/a-better.mp4`
 
 ## alert
 This repo is good for only small videos. 🙂 
