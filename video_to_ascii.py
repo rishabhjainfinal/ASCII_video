@@ -6,7 +6,7 @@ from time import perf_counter,sleep as nap
 from numba import jit, cuda 
 # may add sound later .
 
-@jit(target ="cuda")
+@jit
 class ascii_video :
     """ working of class 
             extract image and yield  
@@ -81,7 +81,7 @@ class ascii_video :
         print(f"\nSaving video as - { self.video_output_name }")
         self.writer.release()
     
-    @jit(target ="cuda")
+    @jit
     def iter_each_frame(self):  
         success = True
         t1 = Thread(target = lambda : None )
@@ -98,7 +98,7 @@ class ascii_video :
                     # make it save frames in thread  in frame list
         self.reader_completed = True
 
-    @jit(target ="cuda")
+    @jit
     def image_to_ascii_convertor(self,image):
         # read the image in the b&w format transpose it and return the ascii nested list for that 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).transpose()
@@ -115,7 +115,7 @@ class ascii_video :
 		
         return ascii_in_pixles
 
-    @jit(target ="cuda")
+    @jit
     def frame_to_ascii_to_ascii_image(self,current_frame):
         # take frame extract ascii data and return the ascii image
         # print('converting to ASCII images' ,end = " - ")
@@ -130,13 +130,13 @@ class ascii_video :
                     image = cv2.putText(image,ascii_val,(index_c*self.pbs,(index_r+1)*self.pbs),cv2.FONT_HERSHEY_PLAIN,0.9,(255,255,255),1)
         return image
     
-    @jit(target ="cuda")
+    @jit
     def add_ascii_frame(self,frame):
         # convert the frame into ascii then convert the ascii to ascii frame 
         ascii_frame = self.frame_to_ascii_to_ascii_image(frame)
         self.writer.write(ascii_frame) # save the frame 
 
-    @jit(target ="cuda")
+    @jit
     def frame_thread_superviser(self):
         print("working on image computing")
         while not self.reader_completed :
