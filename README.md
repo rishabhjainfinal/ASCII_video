@@ -25,10 +25,10 @@ create ascii videos 😎😎😎😎😎.
 
 ## examples
 
-### Fro Image
+### For Image
 <img src="https://github.com/rishabhjainfinal/ASCII_video/blob/main/example.PNG" />
 
-### Fro video results check 
+### For video results check 
 `Ascii_video.mp4` & `Ascii_video2.mp4` & `Ascii_video3.mp4` in this repo made from `testing_data/a-better.mp4`
 given in the order of quality 
 
