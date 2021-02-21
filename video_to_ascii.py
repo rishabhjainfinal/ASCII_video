@@ -133,13 +133,12 @@ class ascii_video :
 
     def frame_thread_superviser(self):
         print("working on image computing")
-        while not self.reader_completed :
+        while not self.reader_completed or len( self.frame_list ) :
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 new_frames = executor.map(self.frame_to_ascii_to_ascii_image , self.frame_list )
                 for new_frame in new_frames:
                     self.writer.write(new_frame) # save the frame 
                     self.frame_list.pop(0)
-        
         print('Done. 😎')
 
     @classmethod
