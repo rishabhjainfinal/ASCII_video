@@ -76,7 +76,7 @@ class ascii_video :
     
     def __exit__(self,a,b,c):
         self.vidcap.release() # print(self.vidcap.isOpened())
-        print(f"\nSaving video as - { self.video_output_name }")
+        print("\nSaving video as - ",self.video_output_name )
         self.writer.release()
     
     @jit(nopython=True)
@@ -87,7 +87,7 @@ class ascii_video :
             success,frame = self.vidcap.read()
             if count%self.steps == 0 and success :
                 if success and self.total_frames > count : 
-                    print(f"Working on frame -> '{str(count).zfill(5)}'")
+                    print("Working on frame -> '"+str(count).zfill(5)+"'")
                     image = self.frame_to_ascii_to_ascii_image(frame)
                     self.add_ascii_frame(image)
 
