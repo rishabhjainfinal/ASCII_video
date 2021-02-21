@@ -4,20 +4,42 @@ from threading import Thread
 from multiprocessing import Process
 # may add sound later .
 
-class ascii_video(image_to_ascii) :
+class ascii_video :
     """ working of class 
             extract image and yield  
             convert into ascii image 
             save in the video  
     """
+    ascii_range_dictCHARS = [
+        ' ','.',
+        ',',"'",
+        '"',':',
+        ";",'-',
+        '*','~',
+        '+','=',
+        '?','/',
+        '|','#',
+        '%','₹',
+        '$','@']
     def __init__(self,video,output_video,fps,pbs):
         self.pbs = pbs
-        super().__init__(for_command_line = False,pbs = self.pbs)
         self.video_name = video
         self.video_output_name = output_video
         self.fps = fps
-        if not os.path.exists(self.video_name): 
-            raise Exception("File not found!!!")
+        if not os.path.exists(self.video_name) : raise Exception("File not found!!!")
+
+        self.ascii_range_dictCHARS.reverse()
+        self.pixle_to_ascii_dict = {}
+        for index,key in enumerate(np.linspace(0,255,num=len(self.ascii_range_dictCHARS),endpoint=True)):
+            key = round(key)
+            if index == 0 :
+                last = index
+                continue
+            for px in range(last,key+1) : 
+                self.pixle_to_ascii_dict[px] = self.ascii_range_dictCHARS[index]
+            last = key
+
+        self.pixle_count_in_block = self.pbs**2
 
         self.thread_list = []
 
@@ -27,14 +49,24 @@ class ascii_video(image_to_ascii) :
         # reading video stuff
         self.vidcap = cv2.VideoCapture(self.video_name)
         # fps set for reading and saving file 
+        self.total_frames = int(self.vidcap.get(cv2.CAP_PROP_FRAME_COUNT)) 
+        print("Total frame count is --> ",self.total_frames)
         default_fps = round(self.vidcap.get(cv2.CAP_PROP_FPS))
         print("default fps of video is --> ",default_fps)
-        if self.fps < default_fps : steps = round(default_fps/self.fps)
-        else : steps = 1
-        self.fps =int(default_fps/steps)
+        if self.fps < default_fps : self.steps = round(default_fps/self.fps)
+        else : self.steps = 1
+        self.fps =int(default_fps/self.steps)
         print("new fps of video is --> ",self.fps)
         # extracting first frame for the setup 
         success,frame = self.vidcap.read()
+        self.width,self.height = tuple(list(frame.shape)[0:2][::-1]) # for creating ascii from the image
+        
+        # blank black image
+        self.blank_black = np.zeros((self.height,self.width,3), np.uint8)
+        
+        # for ascii conversion
+        self.ascii_in_pixles = np.full([self.height//self.pbs,self.width//self.pbs], "", dtype=np.object)
+
 
         # writting video stuff
         self.writer = cv2.VideoWriter(self.video_output_name, cv2.VideoWriter_fourcc(*"mp4v"), self.fps,tuple(list(frame.shape)[0:2][::-1]) )
@@ -42,88 +74,64 @@ class ascii_video(image_to_ascii) :
     
     def __exit__(self,a,b,c):
         self.vidcap.release() # print(self.vidcap.isOpened())
-        print(f"Saving video as - { self.video_output_name }")
+        print(f"\nSaving video as - { self.video_output_name }")
         self.writer.release()
     
-    def read_video(self):
+    def iter_each_frame(self):
         success = True
         while success:
             count = int(self.vidcap.get(1))
             success,frame = self.vidcap.read()
-            # print(success,frame)
-            if count%steps == 0 and success :
-                try : 
-                    self.current_frame = frame 
-                    # print(self.current_frame)
-                    if success : print(f"Working on frame -> '{str(count).zfill(5)}'",end=" - ")
-                    yield True
-                except GeneratorExit : break  #"Need to do some clean up."
-                except : pass # last frame is none =.=
-            else : pass
-        
-        yield False
+            if count%self.steps == 0 and success :
+                if success and self.total_frames > count : 
+                    print(f"Working on frame -> '{str(count).zfill(5)}'")
+                    self.add_ascii_frame(frame)
+                # make it save it ,here in thread
 
-    def convert_to_ascii_image(self,current_frame):
-        # this will convert the black and white frame to ascii letter and creat a image from that letter
-        print('converting to ASCII images' ,end = " - ")
-        # need only b&w images
-        self.img = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
-        self.img = self.img.transpose()
-        self.width,self.height = self.img.shape
-        ascii_list = self.crate_ascii()
-        # creat image 
-        return self.ascii_to_image(ascii_list,self.pbs)
-    
-    def add_ascii_frame(self):
-        # size of the first frames in videos is default   
-        ascii_frame = self.convert_to_ascii_image(self.current_frame)
-        print('Saving image in video.')  
-        self.writer.write(ascii_frame)
+    def image_to_ascii_convertor(self,image):
+        # read the image in the b&w format transpose it and return the ascii nested list for that 
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).transpose()
+        ascii_in_pixles  = np.copy(self.ascii_in_pixles)
 
-    def ascii_to_image(self,ascii_data,pbs):
-        # print(ascii_data)
-        # ascii_data = ascii_data.split('\n')
-        width,height = len(ascii_data)*pbs,len(ascii_data[0])*pbs
-        # creating black image
-        image = np.zeros((width,height,3), np.uint8)
+        # use numpy for fast working here
+        for index_h,h in enumerate(range(0,self.height,self.pbs)) :
+            for index_w,w in enumerate(range(0,self.width,self.pbs)) :
+                try :
+                    sum_ = sum(image[w:w + self.pbs,h:h+self.pbs].flatten())
+                    average = round(float(sum_)/self.pixle_count_in_block)
+                    ascii_in_pixles[index_h][index_w] = self.pixle_to_ascii_dict[average]
+                except : pass # last some pixle less then pixle_count_in_block will be leaved because they may cause some irragularity in shades
+		
+        return ascii_in_pixles
+
+    def frame_to_ascii_to_ascii_image(self,current_frame):
+        # take frame extract ascii data and return the ascii image
+        # print('converting to ASCII images' ,end = " - ")
+        ascii_data = self.image_to_ascii_convertor(current_frame)
+        # copy that blank image here black image 
+        image = np.copy(self.blank_black)
+        # np.zeros((self.height,self.width,3), np.uint8)
         # updating the text in it 
         for index_r,row in enumerate(ascii_data) :
             for index_c,ascii_val in enumerate(row) :
-                image = cv2.putText(image,ascii_val,(index_c*pbs,(index_r+1)*pbs),cv2.FONT_HERSHEY_PLAIN,0.9,(255,255,255),1)
+                image = cv2.putText(image,ascii_val,(index_c*self.pbs,(index_r+1)*self.pbs),cv2.FONT_HERSHEY_PLAIN,0.9,(255,255,255),1)
         return image
     
+    def add_ascii_frame(self,frame):
+        # add multitaskin to the 
+        # convert the frame into ascii then convert the ascii to ascii frame 
+        ascii_frame = self.frame_to_ascii_to_ascii_image(frame)
+
+        # save the frame 
+        self.writer.write(ascii_frame)
+
     @classmethod
-    def testing(cls):
-        with cls('a.mp4',"Ascii_video.mp4",1,20) as ascii_video :
-
-
-
+    def testing(cls,video,output_video,fps,pbs):
+        with cls(video,output_video,fps,pbs) as ascii_video :
+            ascii_video.iter_each_frame()
     
-    @classmethod
-    def runner(cls,video,output_video,fps,pbs):
-        class_runner = cls(video,output_video,fps,pbs) # for testing only
-        # readiing each image
-        reader_gen = class_runner.read_video()
-        # saving each convterted image in video with given fps
-        cretor_gen = class_runner.add_ascii_frame()
-        to_iter = True # for first time
-        while to_iter:
-            to_iter = next(reader_gen)
-            if to_iter : 
-                Thread(target=lambda :next(cretor_gen)).start()
-                # next(cretor_gen)
-            else :
-                print("")
-                break
-        
-        class_runner.close()
-        
 if __name__ == "__main__":
-    ascii_video.runner('ab.mp4',"Ascii_video.mp4",1,20)
-
-
+    ascii_video.testing('ab.mp4',"Ascii_video.mp4",1,10)
 
 # updates needed :
-    # video creator make it simple not generator 
-    # pass argument to the funcion to do its work
     # crate function to which thread submit his work and function save the result in order

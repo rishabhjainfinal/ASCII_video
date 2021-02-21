@@ -21,10 +21,9 @@ def create_save_image():
 
 
 # create_save_image()
-import numpy as np, cv2
+# import numpy as np, cv2
 
-with open('ascii_art.txt') as f:
-	data = f.read()
+# with open('ascii_art.txt') as f:data = f.read()
 
 def ascii_to_image(ascii_data,pbs):
 	ascii_data = ascii_data.split('\n')
@@ -37,8 +36,8 @@ def ascii_to_image(ascii_data,pbs):
 			image = cv2.putText(image,ascii_val,(index_c*pbs,(index_r+1)*pbs),cv2.FONT_HERSHEY_PLAIN,0.9,(255,255,255),1)
 	return image
 
-cv2.imshow("a",func(data))
-cv2.waitKey(0)
+# cv2.imshow("a",func(data))
+# cv2.waitKey(0)
 
 
 # def extract_image(video,fps):
@@ -62,3 +61,13 @@ cv2.waitKey(0)
 #             a.crate_assci()
 #             a.save_in_file()
 #             break
+
+
+a = [0,1,2,3,4,5,6]
+
+a1 = iter(a)
+
+
+for i in a1:
+	a.append(10)
+	print(i)

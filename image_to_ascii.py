@@ -9,7 +9,7 @@ class image_to_ascii(object):
 		self.pbs = pbs # pixle_block_size
 		# all the ascii characters used are here in the order of the darkness
 		self.ascii_range_dictCHARS = [
-			'black_space',
+			' ',
 			'.',
 			',',
 			"'",
@@ -59,24 +59,16 @@ class image_to_ascii(object):
 	
 	def crate_ascii(self):
 		# resonsible for the creation of ascii art from image and return a 2d list as the result  
-		# average_pixle colour of each block 
-		self.ascii_in_pixles = []
+		self.ascii_in_pixles = np.full([self.height//self.pbs,self.width//self.pbs], "", dtype=np.object)
+
 		for index_h,h in enumerate(range(0,self.height,self.pbs)) :
 			temp_list = []
 			for index_w,w in enumerate(range(0,self.width,self.pbs)) :
 				try :
 					sum_ = sum(self.img[w:w + self.pbs,h:h+self.pbs].flatten())
 					average = round(float(sum_)/self.pixle_count_in_block)
-					# print(average)
-					temp_list.append(self.pixle_to_ascii_dict[average])
+					self.ascii_in_pixles[index_h][index_w] = self.pixle_to_ascii_dict[average]
 				except : pass # last some pixle less then pixle_count_in_block will be leaved because they may cause some irragularity in shades
-			# print()
-			self.ascii_in_pixles.append(temp_list)
-		for row in range(len(self.ascii_in_pixles)):
-			for ele in range(len(self.ascii_in_pixles[0])):
-				if self.ascii_in_pixles[row][ele] == 'black_space':
-					self.ascii_in_pixles[row][ele] = " "
-
 		return self.ascii_in_pixles
 
 	def save_in_file(self):
