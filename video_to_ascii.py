@@ -1,8 +1,9 @@
 from image_to_ascii import image_to_ascii
 import cv2,os,numpy as np
 from threading import Thread
-from multiprocessing import Process
+import concurrent.futures
 from threading import Thread
+from time import sleep as nap
 # may add sound later .
 
 class ascii_video :
@@ -42,7 +43,7 @@ class ascii_video :
 
         self.pixle_count_in_block = self.pbs**2
 
-        self.thread_list = []
+        self.frame_list = []
 
     def __enter__(self):
         # this will start reading and writting the frames 
@@ -58,6 +59,7 @@ class ascii_video :
         else : self.steps = 1
         self.fps =int(default_fps/self.steps)
         print("new fps of video is --> ",self.fps)
+        self.reader_completed = False
         # extracting first frame for the setup 
         success,frame = self.vidcap.read()
         self.width,self.height = tuple(list(frame.shape)[0:2][::-1]) # for creating ascii from the image
@@ -78,16 +80,21 @@ class ascii_video :
         print(f"\nSaving video as - { self.video_output_name }")
         self.writer.release()
     
-    def iter_each_frame(self):
+    def iter_each_frame(self):  
         success = True
+        t1 = Thread(target = lambda : None )
+        t1.start()
         while success:
             count = int(self.vidcap.get(1))
             success,frame = self.vidcap.read()
             if count%self.steps == 0 and success :
                 if success and self.total_frames > count : 
                     print(f"Working on frame -> '{str(count).zfill(5)}'")
-                    self.add_ascii_frame(frame)
-                # make it save it ,here in thread
+                    t1.join()
+                    t1 = Thread(target = lambda : self.frame_list.append(frame))
+                    t1.start()
+                    # make it save frames in thread  in frame list
+        self.reader_completed = True
 
     def image_to_ascii_convertor(self,image):
         # read the image in the b&w format transpose it and return the ascii nested list for that 
@@ -120,23 +127,35 @@ class ascii_video :
         return image
     
     def add_ascii_frame(self,frame):
-        # add multitaskin to the 
         # convert the frame into ascii then convert the ascii to ascii frame 
         ascii_frame = self.frame_to_ascii_to_ascii_image(frame)
+        self.writer.write(ascii_frame) # save the frame 
 
-        # save the frame 
-        self.writer.write(ascii_frame)
+    def frame_thread_superviser(self):
+        print("working on image computing")
+        while not self.reader_completed :
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                new_frames = executor.map(self.frame_to_ascii_to_ascii_image , self.frame_list )
+                for new_frame in new_frames:
+                    Thread(target= lambda : self.frame_list.pop(0)).start()
+                    self.writer.write(new_frame) # save the frame 
+        
+        print('Done. 😎')
 
     @classmethod
-    def testing(cls,video,output_video,fps,pbs):
+    def runner(cls,video,output_video,fps,pbs):
         with cls(video,output_video,fps,pbs) as ascii_video :
-            reader = Thread(target=ascii_video.iter_each_frame())
+            reader = Thread(target= ascii_video.iter_each_frame )
             reader.start()
-            reader.join()
-    
-if __name__ == "__main__":
-    ascii_video.testing('ab.mp4',"Ascii_video2.mp4",30,10)
 
-# updates needed : 
-    # crate function to which thread submit his work and function save the result in order
-    # first create a list of the funtion 
+            # start the frame saving thread
+            saver = Thread(target = ascii_video.frame_thread_superviser)
+            saver.start()
+
+            # waiting for complete all the reading frames
+            reader.join()
+            print('waiting for the results...')
+            saver.join()
+
+if __name__ == "__main__" : 
+    ascii_video.runner('ab.mp4',"Ascii_video2.mp4",10,20)
